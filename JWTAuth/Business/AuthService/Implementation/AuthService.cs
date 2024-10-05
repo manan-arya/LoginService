@@ -21,43 +21,59 @@ namespace JWTAuth.Business.AuthService.Implementation
 
         public async Task<User> Login(string email, string password)
         {
-            User? user = await _dbContext.Users.FindAsync(email);
-
-            if (user == null || BCrypt.Verify(password, user.Password) == false)
+            try
             {
-                return null; //returning null intentionally to show that login was unsuccessful
-            }
+                User? user = await _dbContext.Users.FindAsync(email);
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["JWT:SecretKey"]);
-
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new Claim[]
+                if (user == null || BCrypt.Verify(password, user.Password) == false)
                 {
+                    return null; //returning null intentionally to show that login was unsuccessful
+                }
+
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var key = Encoding.ASCII.GetBytes(_configuration["JWT:SecretKey"]);
+
+                var tokenDescriptor = new SecurityTokenDescriptor
+                {
+                    Subject = new ClaimsIdentity(new Claim[]
+                    {
                     new Claim(ClaimTypes.Name, user.UserName),
                     new Claim(ClaimTypes.GivenName, user.Name),
-                    new Claim(ClaimTypes.Role, user.Role)
-                }),
-                IssuedAt = DateTime.UtcNow,
-                Issuer = _configuration["JWT:Issuer"],
-                Audience = _configuration["JWT:Audience"],
-                Expires = DateTime.UtcNow.AddMinutes(30),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-            };
+                    new Claim(ClaimTypes.Role, user.Role),
+                    new Claim(ClaimTypes.NameIdentifier, user.ID.ToString()),
+                    new Claim("ID", user.ID.ToString())
+                    }),
+                    IssuedAt = DateTime.UtcNow,
+                    Issuer = _configuration["JWT:Issuer"],
+                    Audience = _configuration["JWT:Audience"],
+                    Expires = DateTime.UtcNow.AddMinutes(30),
+                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                };
 
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            user.Token = tokenHandler.WriteToken(token);
-            user.IsActive = true;
+                var token = tokenHandler.CreateToken(tokenDescriptor);
+                user.Token = tokenHandler.WriteToken(token);
+                user.IsActive = true;
 
-            return user;
+                return user;
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
         }
 
         public async Task<User> Register(User user)
         {
             user.Password = BCrypt.HashPassword(user.Password);
             _dbContext.Users.Add(user);
-            await _dbContext.SaveChangesAsync();
+            try
+            {
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                
+            }
             
             return user;
         }

@@ -39,7 +39,7 @@ namespace JWTAuth.Controllers
             {
                 HttpOnly = true,
                 Secure = true, // Set to true in production
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddHours(1)
             };
 
@@ -86,7 +86,7 @@ namespace JWTAuth.Controllers
         }
 
         // GET: auth/test
-        [Authorize(Roles = "test")]
+        [Authorize(Roles = "Everyone")]
         [HttpGet]
         public IActionResult Test()
         {

@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>9715d949-f161-4a2c-826e-7cbb3b35edd3</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileRunArguments>--network MyInstantsNetwork</DockerfileRunArguments>
   </PropertyGroup>
 
   <ItemGroup>
